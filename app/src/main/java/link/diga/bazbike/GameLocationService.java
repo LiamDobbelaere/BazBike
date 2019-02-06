@@ -9,10 +9,12 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -81,6 +83,13 @@ public class GameLocationService extends Service {
         this.stopSelf();
     }
 
+    private void broadcastLocationUpdate(double lat, double lng) {
+        Intent intent = new Intent("location-update");
+        intent.putExtra("lat", lat);
+        intent.putExtra("lng", lng);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -92,13 +101,17 @@ public class GameLocationService extends Service {
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
 
+                Location location = locationResult.getLastLocation();
+
                 Notification notification = getNotification()
-                        .setContentText(Double.toString(locationResult.getLastLocation().getLatitude())).build();
+                        .setContentText(Double.toString(location.getLatitude())).build();
 
                 NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 mNotificationManager.notify(NOTIFICATION_ID, notification);
 
-                Log.i(TAG, "Location result: " + Double.toString(locationResult.getLastLocation().getLatitude()));
+                Log.i(TAG, "Location result: " + Double.toString(location.getLatitude()));
+
+                broadcastLocationUpdate(location.getLatitude(), location.getLongitude());
             }
         };
 
