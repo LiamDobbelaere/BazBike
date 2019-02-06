@@ -129,6 +129,9 @@ public class GameLocationService extends Service
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
 
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        mLocationCallback = null;
+
         this.stopSelf();
     }
 

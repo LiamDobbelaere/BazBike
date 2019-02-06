@@ -30,10 +30,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
 
-    private FusedLocationProviderClient mFusedLocationClient;
-    private LocationCallback mLocationCallback;
-    private LocationRequest mLocationRequest;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,16 +38,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-        mLocationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                super.onLocationResult(locationResult);
-                Log.i(TAG, "Location result: " + Double.toString(locationResult.getLastLocation().getLatitude()));
-            }
-        };
-        mLocationRequest = LocationHelper.createLocationRequest();
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         if (!LocationHelper.checkLocationPermissions(this)) requestPermissions();
 
@@ -81,7 +67,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.i(TAG, "User interaction was cancelled.");
             } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.i(TAG, "Permission granted.");
-                startGps();
             } else {
                 // Permission denied.
 
@@ -99,28 +84,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         }
-    }
-
-    private void startGps() {
-        Log.i(TAG, "Setting up location services...");
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions();
-            return;
-        }
-
-        mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback, null)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.i(TAG, "Request location updates enabled!");
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e(TAG, "Request location updates failed..");
-            }
-        });
     }
 
     /**
