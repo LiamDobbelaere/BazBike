@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
@@ -30,7 +31,12 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 import link.diga.bazbike.persistence.BazBikeDatabase;
+import link.diga.bazbike.persistence.LocationGoal;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
     private final String TAG = "MapScreen";
@@ -43,6 +49,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private Marker mCurrentLocationMarker;
     private Marker mAddLocationMarker;
+    private List<Marker> mLocationGoalMarkers;
 
     private boolean mEnableAddLocation;
 
@@ -54,8 +61,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
         setActionBar((Toolbar) findViewById(R.id.toolbar) );
 
+        mLocationGoalMarkers = new ArrayList<>();
+
         bazBikeDatabase = Room
                 .databaseBuilder(getApplicationContext(), BazBikeDatabase.class, "bazbikedb")
+                .fallbackToDestructiveMigration()
                 .enableMultiInstanceInvalidation()
                 .build();
 
@@ -153,9 +163,46 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onPause();
     }
 
+    private void reloadLocationGoals() {
+        mLocationGoalMarkers.forEach(new Consumer<Marker>() {
+            @Override
+            public void accept(Marker marker) {
+                marker.remove();
+            }
+        });
+        mLocationGoalMarkers.clear();
+
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                final List<LocationGoal> locationGoals = bazBikeDatabase.locationGoalDao().getAll();
+
+                locationGoals.forEach(new Consumer<LocationGoal>() {
+                    @Override
+                    public void accept(LocationGoal locationGoal) {
+                        final MarkerOptions mo = new MarkerOptions();
+                        mo.position(new LatLng(locationGoal.lat, locationGoal.lng));
+                        mo.draggable(false);
+                        mo.title(locationGoal.locationName);
+                        mo.icon(BitmapDescriptorFactory.defaultMarker(125f));
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mLocationGoalMarkers.add(mMap.addMarker(mo));
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
+        reloadLocationGoals();
 
         MarkerOptions mo = new MarkerOptions();
         mo.position(new LatLng(0, 0));
@@ -199,13 +246,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             .setView(txtLocationName)
                             .setPositiveButton("Add", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int whichButton) {
-                                    String name = txtLocationName.getText().toString();
+
+                                    final String name = txtLocationName.getText().toString();
+                                    final double lat = mAddLocationMarker.getPosition().latitude;
+                                    final double lng = mAddLocationMarker.getPosition().longitude;
+                                    AsyncTask.execute(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            LocationGoal locationGoal = new LocationGoal();
+                                            locationGoal.locationName = name;
+                                            locationGoal.lat = lat;
+                                            locationGoal.lng = lng;
+                                            bazBikeDatabase.locationGoalDao().insertAll(locationGoal);
+                                        }
+                                    });
 
                                     if (mAddLocationMarker != null) {
                                         mAddLocationMarker.remove();
                                     }
 
-                                    Log.i(TAG, "Add location happens now for " + name);
+                                    reloadLocationGoals();
                                 }
                             })
                             .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

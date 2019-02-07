@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey;
 
 @Entity
 public class LocationGoal {
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     public int id;
 
     @ColumnInfo(name = "location_name")
