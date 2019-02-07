@@ -44,6 +44,8 @@ public class GameLocationService extends Service {
                 CHANNEL_DESC,
                 NotificationManager.IMPORTANCE_DEFAULT);
 
+        channel.setSound(null, null);
+
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
 
         startForeground(NOTIFICATION_ID, getNotification().setContentText("Starting...").build());
@@ -55,17 +57,12 @@ public class GameLocationService extends Service {
         Intent notificationIntent = new Intent(this, MapsActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
-        NotificationCompat.Builder notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                //.setOngoing(true)
-                //.setAutoCancel(false)
-                //.setTicker("Truiton Music Player")
+        return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Receiving location updates")
                 .setColorized(true)
                 .setColor(ContextCompat.getColor(this, R.color.colorPrimary))
                 .setSmallIcon(R.drawable.ic_stat_tracker)
                 .setContentIntent(pendingIntent);
-
-        return notification;
     }
 
     @Override

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/action_favorite"
+        android:id="@+id/action_addlocation"
         android:orderInCategory="300"
         android:title="@string/add_location"
         android:icon="@drawable/ic_add_location"
