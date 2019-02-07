@@ -1,7 +1,7 @@
 package link.diga.bazbike;
 
 import android.Manifest;
-import android.arch.persistence.room.Room;
+import androidx.room.Room;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -9,12 +9,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AlertDialog;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentActivity;
+import androidx.core.content.ContextCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.appcompat.app.AlertDialog;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -54,10 +54,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
         setActionBar((Toolbar) findViewById(R.id.toolbar) );
 
-        /*bazBikeDatabase = Room
+        bazBikeDatabase = Room
                 .databaseBuilder(getApplicationContext(), BazBikeDatabase.class, "bazbikedb")
-                .ena
-                .build();*/
+                .enableMultiInstanceInvalidation()
+                .build();
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
