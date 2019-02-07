@@ -10,11 +10,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.os.IBinder;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.room.Room;
+import link.diga.bazbike.persistence.BazBikeDatabase;
+import link.diga.bazbike.persistence.LocationGoal;
+
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.util.Log;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -22,6 +30,8 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+
+import java.util.function.Consumer;
 
 public class GameLocationService extends Service {
     public static String TAG = GameLocationService.class.getSimpleName();
@@ -32,6 +42,13 @@ public class GameLocationService extends Service {
 
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
+
+    private BazBikeDatabase bazBikeDatabase;
+
+    private MediaPlayer mp;
+
+    private int score;
+    private LocationGoal mLastVisitedLocation;
 
     public GameLocationService() {
         super();
@@ -87,18 +104,33 @@ public class GameLocationService extends Service {
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
+    private void broadcastScoreUpdate() {
+        score += 1;
+
+        Intent intent = new Intent("score-update");
+        intent.putExtra("score", score);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
 
+        if (bazBikeDatabase == null) {
+            bazBikeDatabase = Room
+                    .databaseBuilder(getApplicationContext(), BazBikeDatabase.class, "bazbikedb")
+                    .enableMultiInstanceInvalidation()
+                    .build();
+        }
 
+        final Context self = this;
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
 
-                Location location = locationResult.getLastLocation();
+                final Location location = locationResult.getLastLocation();
 
                 Notification notification = getNotification()
                         .setContentText(Double.toString(location.getLatitude())).build();
@@ -107,6 +139,43 @@ public class GameLocationService extends Service {
                 mNotificationManager.notify(NOTIFICATION_ID, notification);
 
                 Log.i(TAG, "Location result: " + Double.toString(location.getLatitude()));
+
+                AsyncTask.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        bazBikeDatabase.locationGoalDao().getAll().forEach(new Consumer<LocationGoal>() {
+                            @Override
+                            public void accept(LocationGoal locationGoal) {
+                                Location locGoal = new Location("");
+                                locGoal.setLatitude(locationGoal.lat);
+                                locGoal.setLongitude(locationGoal.lng);
+
+                                if (locGoal.distanceTo(location) <= 25f) {
+                                    if (mLastVisitedLocation != null && mLastVisitedLocation.equals(locationGoal)) return;
+
+                                    broadcastScoreUpdate();
+
+
+                                    Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                                    v.vibrate(VibrationEffect.createOneShot(1000, VibrationEffect.DEFAULT_AMPLITUDE));
+
+                                    mLastVisitedLocation = locationGoal;
+
+                                    /*mp = MediaPlayer.create(self, R.raw.score);
+                                    mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                                        @Override
+                                        public void onCompletion(MediaPlayer mp) {
+                                            mp.reset();
+                                            mp.release();
+                                            mp = null;
+                                        }
+                                    });
+                                    mp.start();*/
+                                }
+                            }
+                        });
+                    }
+                });
 
                 broadcastLocationUpdate(location.getLatitude(), location.getLongitude());
             }

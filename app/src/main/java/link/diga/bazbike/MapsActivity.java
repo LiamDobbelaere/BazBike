@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toolbar;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -46,6 +47,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
 
     private BroadcastReceiver mLocationUpdateReceiver;
+    private BroadcastReceiver mScoreUpdateReceiver;
+
+    private TextView tvScore;
 
     private Marker mCurrentLocationMarker;
     private Marker mAddLocationMarker;
@@ -62,10 +66,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setActionBar((Toolbar) findViewById(R.id.toolbar) );
 
         mLocationGoalMarkers = new ArrayList<>();
+        tvScore = findViewById(R.id.score);
 
         bazBikeDatabase = Room
                 .databaseBuilder(getApplicationContext(), BazBikeDatabase.class, "bazbikedb")
-                .fallbackToDestructiveMigration()
                 .enableMultiInstanceInvalidation()
                 .build();
 
@@ -88,6 +92,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
 
                 Log.i(TAG, "Received location update! " + Double.toString(lat) + ", " + Double.toString(lng));
+            }
+        };
+
+        mScoreUpdateReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                tvScore.setText(String.valueOf(intent.getIntExtra("score", 0)) + " pts");
             }
         };
 
@@ -128,7 +139,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void requestPermissions() {
         ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.VIBRATE, Manifest.permission.ACCESS_COARSE_LOCATION},
                 REQUEST_PERMISSIONS_REQUEST_CODE);
     }
 
@@ -153,12 +164,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(mLocationUpdateReceiver,
                         new IntentFilter("location-update"));
+
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(mScoreUpdateReceiver,
+                        new IntentFilter("score-update"));
     }
 
     @Override
     protected void onPause() {
         LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(mLocationUpdateReceiver);
+
+        LocalBroadcastManager.getInstance(this)
+                .unregisterReceiver(mScoreUpdateReceiver);
 
         super.onPause();
     }
