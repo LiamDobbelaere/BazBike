@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.media.MediaPlayer;
@@ -50,6 +51,9 @@ public class GameLocationService extends Service {
     private int score;
     private LocationGoal mLastVisitedLocation;
 
+    private double distanceTemp;
+    private Location lastLocation;
+
     public GameLocationService() {
         super();
     }
@@ -59,7 +63,7 @@ public class GameLocationService extends Service {
         NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID,
                 CHANNEL_DESC,
-                NotificationManager.IMPORTANCE_MAX);
+                NotificationManager.IMPORTANCE_LOW);
 
         channel.setSound(null, null);
 
@@ -138,44 +142,37 @@ public class GameLocationService extends Service {
                 NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 mNotificationManager.notify(NOTIFICATION_ID, notification);
 
+                if (lastLocation != null) {
+                    distanceTemp += lastLocation.distanceTo(location);
+                }
+
+                lastLocation = location;
+
                 Log.i(TAG, "Location result: " + Double.toString(location.getLatitude()));
 
-                AsyncTask.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        bazBikeDatabase.locationGoalDao().getAll().forEach(new Consumer<LocationGoal>() {
-                            @Override
-                            public void accept(LocationGoal locationGoal) {
-                                Location locGoal = new Location("");
-                                locGoal.setLatitude(locationGoal.lat);
-                                locGoal.setLongitude(locationGoal.lng);
+                AsyncTask.execute(() -> bazBikeDatabase.locationGoalDao().getAll().forEach(locationGoal -> {
+                    Location locGoal = new Location("");
+                    locGoal.setLatitude(locationGoal.lat);
+                    locGoal.setLongitude(locationGoal.lng);
 
-                                if (locGoal.distanceTo(location) <= 25f) {
-                                    if (mLastVisitedLocation != null && mLastVisitedLocation.equals(locationGoal)) return;
+                    if (locGoal.distanceTo(location) <= 25f) {
+                        if (mLastVisitedLocation != null && mLastVisitedLocation.equals(locationGoal)) return;
 
-                                    broadcastScoreUpdate();
+                        SharedPreferences sp = getSharedPreferences(getString(R.string.savedata_prefs), MODE_PRIVATE);
+                        float distance = sp.getFloat("savedDistance", 0f);
+                        distance += distanceTemp;
+                        sp.edit().putFloat("savedDistance", distance).apply();
 
+                        distanceTemp = 0f;
 
-                                    Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-                                    v.vibrate(VibrationEffect.createOneShot(1000, VibrationEffect.DEFAULT_AMPLITUDE));
+                        broadcastScoreUpdate();
 
-                                    mLastVisitedLocation = locationGoal;
+                        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+                        v.vibrate(VibrationEffect.createOneShot(1000, VibrationEffect.DEFAULT_AMPLITUDE));
 
-                                    /*mp = MediaPlayer.create(self, R.raw.score);
-                                    mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                                        @Override
-                                        public void onCompletion(MediaPlayer mp) {
-                                            mp.reset();
-                                            mp.release();
-                                            mp = null;
-                                        }
-                                    });
-                                    mp.start();*/
-                                }
-                            }
-                        });
+                        mLastVisitedLocation = locationGoal;
                     }
-                });
+                }));
 
                 broadcastLocationUpdate(location.getLatitude(), location.getLongitude());
             }

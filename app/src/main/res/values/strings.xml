@@ -19,4 +19,5 @@
     <string name="location_removed">Location goal removed</string>
     <string name="pref_data_remove_locationgoal">Remove location goal</string>
     <string name="pref_data_remove_locationgoal_desc">Are you sure you want to remove this location goal?</string>
+    <string name="savedata_prefs">link.diga.bazbike.savedata</string>
 </resources>

@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -31,6 +32,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -57,6 +60,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Marker mCurrentLocationMarker;
     private Marker mAddLocationMarker;
     private List<Marker> mLocationGoalMarkers;
+    private List<Circle> mLocationGoalCircles;
 
     private boolean mEnableAddLocation;
 
@@ -69,6 +73,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setActionBar((Toolbar) findViewById(R.id.toolbar) );
 
         mLocationGoalMarkers = new ArrayList<>();
+        mLocationGoalCircles = new ArrayList<>();
         tvScore = findViewById(R.id.score);
 
         bazBikeDatabase = Room
@@ -98,10 +103,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         };
 
+        updateSavedDistance();
         mScoreUpdateReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                tvScore.setText(String.valueOf(intent.getIntExtra("score", 0)) + " pts");
+                updateSavedDistance();
             }
         };
 
@@ -109,12 +115,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         ContextCompat.startForegroundService(this, intent);
     }
 
+    private void updateSavedDistance() {
+        SharedPreferences sp = getSharedPreferences(getString(R.string.savedata_prefs), MODE_PRIVATE);
+        float distance = sp.getFloat("savedDistance", 0f);
+
+        tvScore.setText(String.valueOf(distance));
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.maps_menu, menu);
-        for (int i = 0; i < menu.size(); i++) {
-            //menu.getItem(i).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        }
         return true;
     }
 
@@ -195,6 +205,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mLocationGoalMarkers.forEach(Marker::remove);
         mLocationGoalMarkers.clear();
 
+        mLocationGoalCircles.forEach(Circle::remove);
+        mLocationGoalCircles.clear();
+
         AsyncTask.execute(() -> {
             final List<LocationGoal> locationGoals = bazBikeDatabase.locationGoalDao().getAll();
 
@@ -205,7 +218,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mo.title(locationGoal.locationName);
                 mo.icon(BitmapDescriptorFactory.defaultMarker(125f));
 
-                runOnUiThread(() -> mLocationGoalMarkers.add(mMap.addMarker(mo)));
+                runOnUiThread(() -> {
+                    mLocationGoalCircles.add(mMap.addCircle(new CircleOptions().strokeWidth(0f).center(mo.getPosition()).fillColor(0x1100ff00).radius(25d)));
+                    mLocationGoalMarkers.add(mMap.addMarker(mo));
+                });
             });
         });
     }
