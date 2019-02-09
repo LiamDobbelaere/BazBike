@@ -20,4 +20,7 @@ public interface LocationGoalDao {
 
     @Query("DELETE FROM locationgoal")
     void deleteAll();
+
+    @Query("DELETE FROM LocationGoal WHERE location_name = :name AND lat = :lat AND lng = :lng")
+    void deleteFromMarker(String name, double lat, double lng);
 }

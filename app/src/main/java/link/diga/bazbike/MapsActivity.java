@@ -23,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.Toolbar;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -191,37 +192,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void reloadLocationGoals() {
-        mLocationGoalMarkers.forEach(new Consumer<Marker>() {
-            @Override
-            public void accept(Marker marker) {
-                marker.remove();
-            }
-        });
+        mLocationGoalMarkers.forEach(Marker::remove);
         mLocationGoalMarkers.clear();
 
-        AsyncTask.execute(new Runnable() {
-            @Override
-            public void run() {
-                final List<LocationGoal> locationGoals = bazBikeDatabase.locationGoalDao().getAll();
+        AsyncTask.execute(() -> {
+            final List<LocationGoal> locationGoals = bazBikeDatabase.locationGoalDao().getAll();
 
-                locationGoals.forEach(new Consumer<LocationGoal>() {
-                    @Override
-                    public void accept(LocationGoal locationGoal) {
-                        final MarkerOptions mo = new MarkerOptions();
-                        mo.position(new LatLng(locationGoal.lat, locationGoal.lng));
-                        mo.draggable(false);
-                        mo.title(locationGoal.locationName);
-                        mo.icon(BitmapDescriptorFactory.defaultMarker(125f));
+            locationGoals.forEach(locationGoal -> {
+                final MarkerOptions mo = new MarkerOptions();
+                mo.position(new LatLng(locationGoal.lat, locationGoal.lng));
+                mo.draggable(false);
+                mo.title(locationGoal.locationName);
+                mo.icon(BitmapDescriptorFactory.defaultMarker(125f));
 
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mLocationGoalMarkers.add(mMap.addMarker(mo));
-                            }
-                        });
-                    }
-                });
-            }
+                runOnUiThread(() -> mLocationGoalMarkers.add(mMap.addMarker(mo)));
+            });
         });
     }
 
@@ -238,80 +223,90 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mCurrentLocationMarker = mMap.addMarker(mo);
 
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-                if (mEnableAddLocation) {
-                    if (mAddLocationMarker != null) {
-                        mAddLocationMarker.remove();
-                    }
-
-                    MarkerOptions mo = new MarkerOptions();
-                    mo.position(latLng);
-                    mo.draggable(false);
-                    mo.title(getString(R.string.new_location));
-                    mo.icon(BitmapDescriptorFactory.defaultMarker(300f));
-
-                    mAddLocationMarker = mMap.addMarker(mo);
-                    mAddLocationMarker.showInfoWindow();
+        mMap.setOnMapClickListener(latLng -> {
+            if (mEnableAddLocation) {
+                if (mAddLocationMarker != null) {
+                    mAddLocationMarker.remove();
                 }
+
+                MarkerOptions mo1 = new MarkerOptions();
+                mo1.position(latLng);
+                mo1.draggable(false);
+                mo1.title(getString(R.string.new_location));
+                mo1.icon(BitmapDescriptorFactory.defaultMarker(300f));
+
+                mAddLocationMarker = mMap.addMarker(mo1);
+                mAddLocationMarker.showInfoWindow();
             }
         });
 
+
         final Context self = this;
-        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
-            @Override
-            public void onInfoWindowClick(Marker marker) {
-                if (marker.equals(mAddLocationMarker)) {
-                    final EditText txtLocationName = new EditText(self);
+        mMap.setOnInfoWindowClickListener(marker -> {
+            if (marker.equals(mAddLocationMarker)) {
+                final EditText txtLocationName = new EditText(self);
 
-                    txtLocationName.setHint("Coffee shop");
+                txtLocationName.setHint("Coffee shop");
 
-                    new AlertDialog.Builder(self)
-                            .setTitle("Add location")
-                            .setMessage("Enter a name for this new location")
-                            .setView(txtLocationName)
-                            .setPositiveButton("Add", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int whichButton) {
+                new AlertDialog.Builder(self)
+                        .setTitle("Add location")
+                        .setMessage("Enter a name for this new location")
+                        .setView(txtLocationName)
+                        .setPositiveButton("Add", (dialog, whichButton) -> {
 
-                                    final String name = txtLocationName.getText().toString();
-                                    final double lat = mAddLocationMarker.getPosition().latitude;
-                                    final double lng = mAddLocationMarker.getPosition().longitude;
-                                    AsyncTask.execute(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            LocationGoal locationGoal = new LocationGoal();
-                                            locationGoal.locationName = name;
-                                            locationGoal.lat = lat;
-                                            locationGoal.lng = lng;
-                                            bazBikeDatabase.locationGoalDao().insertAll(locationGoal);
-                                        }
-                                    });
+                            final String name = txtLocationName.getText().toString();
+                            final double lat = mAddLocationMarker.getPosition().latitude;
+                            final double lng = mAddLocationMarker.getPosition().longitude;
+                            AsyncTask.execute(() -> {
+                                LocationGoal locationGoal = new LocationGoal();
+                                locationGoal.locationName = name;
+                                locationGoal.lat = lat;
+                                locationGoal.lng = lng;
+                                bazBikeDatabase.locationGoalDao().insertAll(locationGoal);
+                            });
 
-                                    if (mAddLocationMarker != null) {
-                                        mAddLocationMarker.remove();
-                                    }
+                            if (mAddLocationMarker != null) {
+                                mAddLocationMarker.remove();
+                            }
 
-                                    reloadLocationGoals();
-                                }
-                            })
-                            .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int whichButton) {
+                            reloadLocationGoals();
+                        })
+                        .setNegativeButton("Cancel", (dialog, whichButton) -> {
 
 
-                                }
-                            })
-                            .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                @Override
-                                public void onCancel(DialogInterface dialog) {
-                                    if (mAddLocationMarker != null) {
-                                        mAddLocationMarker.remove();
-                                    }
-                                }
-                            })
-                            .show();
-                }
+                        })
+                        .setOnCancelListener(dialog -> {
+                            if (mAddLocationMarker != null) {
+                                mAddLocationMarker.remove();
+                            }
+                        })
+                        .show();
             }
+        });
+
+        mMap.setOnInfoWindowLongClickListener(marker -> {
+            if (marker == mCurrentLocationMarker || marker == mAddLocationMarker) return;
+
+            String title = marker.getTitle();
+            double lat = marker.getPosition().latitude;
+            double lng = marker.getPosition().longitude;
+
+            new AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.pref_data_remove_locationgoal))
+                    .setMessage(getString(R.string.pref_data_remove_locationgoal_desc))
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setPositiveButton(android.R.string.yes, (dialog, whichButton) -> AsyncTask.execute(() -> {
+                        bazBikeDatabase.locationGoalDao().deleteFromMarker(title, lat, lng);
+
+                        runOnUiThread(() -> {
+                                reloadLocationGoals();
+                                Toast.makeText(getApplicationContext(),
+                                        getString(R.string.location_removed),
+                                        Toast.LENGTH_SHORT).show();
+                        });
+                    }))
+                    .setNegativeButton(android.R.string.no, null).show();
+
         });
     }
 }
