@@ -16,6 +16,8 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.appcompat.app.AlertDialog;
+
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -110,7 +112,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.maps_menu, menu);
         for (int i = 0; i < menu.size(); i++) {
-            menu.getItem(i).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+            //menu.getItem(i).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         }
         return true;
     }
@@ -130,6 +132,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     findViewById(R.id.action_addlocation).setBackgroundColor(getColor(android.R.color.transparent));
                 }
+
+                return true;
+            case R.id.action_settings:
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
 
                 return true;
         }
@@ -160,6 +167,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onResume() {
         super.onResume();
+
+        reloadLocationGoals();
 
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(mLocationUpdateReceiver,

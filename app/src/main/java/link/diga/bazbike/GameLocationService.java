@@ -59,7 +59,7 @@ public class GameLocationService extends Service {
         NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID,
                 CHANNEL_DESC,
-                NotificationManager.IMPORTANCE_DEFAULT);
+                NotificationManager.IMPORTANCE_MAX);
 
         channel.setSound(null, null);
 

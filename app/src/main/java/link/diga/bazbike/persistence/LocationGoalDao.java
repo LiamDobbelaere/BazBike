@@ -17,4 +17,7 @@ public interface LocationGoalDao {
 
     @Delete
     void delete(LocationGoal locationGoal);
+
+    @Query("DELETE FROM locationgoal")
+    void deleteAll();
 }

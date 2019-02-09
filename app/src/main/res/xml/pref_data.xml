@@ -1,0 +1,5 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <Preference android:title="@string/pref_data_clear"
+                android:summary="@string/pref_data_clear_summary"
+                android:key="@string/pref_data_clear_key"/>
+</PreferenceScreen>

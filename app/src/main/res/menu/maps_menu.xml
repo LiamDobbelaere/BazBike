@@ -1,13 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <item
         android:id="@+id/action_addlocation"
         android:orderInCategory="300"
         android:title="@string/add_location"
         android:icon="@drawable/ic_add_location"
-        app:showAsAction="always" />
+        tools:ignore="AppCompatResource"
+        android:showAsAction="always" />
 
+    <item
+        android:id="@+id/action_viewprofile"
+        android:orderInCategory="300"
+        android:title="@string/view_profile"
+        android:icon="@drawable/ic_view_profile"
+        tools:ignore="AppCompatResource"
+        android:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="300"
+        android:title="@string/settings"
+        android:icon="@drawable/ic_view_profile"
+        tools:ignore="AppCompatResource"
+        android:showAsAction="never" />
 
 </menu>

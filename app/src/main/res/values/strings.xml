@@ -3,4 +3,17 @@
     <string name="title_activity_maps">@string/app_name</string>
     <string name="add_location">Add Location</string>
     <string name="new_location">Tap here to add this location</string>
+    <string name="view_profile">View profile</string>
+    <string name="settings">Settings</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Settings -->
+    <string name="pref_header_data">Data</string>
+    <string name="pref_ringtone_silent">Silent</string>
+    <string name="pref_data_clear">Clear all locations</string>
+    <string name="pref_data_clear_summary">Removes all added location goals</string>
+    <string name="pref_data_clear_key">clearlocation</string>
+    <string name="pref_data_clear_confirmtitle">ERASE ALL LOCATION GOALS</string>
+    <string name="pref_data_clear_confirmdesc">Are you sure you want to remove all your added location goals? This won\'t affect your acquired points.</string>
+    <string name="pref_data_clear_toast">All location goals cleared</string>
 </resources>
