@@ -161,7 +161,9 @@ public class GameLocationService extends Service {
                         SharedPreferences sp = getSharedPreferences(getString(R.string.savedata_prefs), MODE_PRIVATE);
                         float distance = sp.getFloat("savedDistance", 0f);
                         distance += distanceTemp;
-                        sp.edit().putFloat("savedDistance", distance).apply();
+                        float xp = sp.getFloat("experience", 0f);
+                        xp += distanceTemp / 2f;
+                        sp.edit().putFloat("savedDistance", distance).putFloat("experience", xp).apply();
 
                         distanceTemp = 0f;
 

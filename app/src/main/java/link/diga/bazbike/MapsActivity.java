@@ -145,6 +145,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
 
                 return true;
+            case R.id.action_viewprofile:
+                Intent profileIntent = new Intent(this, ProfileActivity.class);
+                startActivity(profileIntent);
+
+                return true;
             case R.id.action_settings:
                 Intent intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);

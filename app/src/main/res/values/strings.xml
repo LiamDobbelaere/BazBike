@@ -20,4 +20,11 @@
     <string name="pref_data_remove_locationgoal">Remove location goal</string>
     <string name="pref_data_remove_locationgoal_desc">Are you sure you want to remove this location goal?</string>
     <string name="savedata_prefs">link.diga.bazbike.savedata</string>
+    <string name="profile_title">Your profile</string>
+    <string name="progress">Progress</string>
+    <string name="XP">XP</string>
+    <string name="xpPlaceholder">%1$d XP, %2$d to go</string>
+    <string name="level">Level</string>
+    <string name="levelPlaceholder">Level %1$d</string>
+
 </resources>

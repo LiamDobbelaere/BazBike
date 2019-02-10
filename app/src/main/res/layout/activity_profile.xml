@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/place_autocomplete_button_padding"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/progress"
+        android:textSize="14pt"/>
+
+    <TextView
+        android:id="@+id/currentLevel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/level"
+        android:textColor="@color/colorAccent"
+        android:textSize="8pt" />
+
+    <ProgressBar
+        android:id="@+id/xpProgress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:progress="55"
+        android:progressTint="@color/colorAccent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/xpRequired"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/XP"/>
+
+</LinearLayout>
