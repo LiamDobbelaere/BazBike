@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -217,6 +218,25 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
                             settingsActivity.runOnUiThread(() -> {
                                 Toast.makeText(getContext(), getString(R.string.pref_data_clear_toast), Toast.LENGTH_LONG).show();
+                            });
+                        }))
+                        .setNegativeButton(android.R.string.no, null).show();
+
+                return true;
+            });
+
+            Preference buttonClearProgress = findPreference(getString(R.string.pref_data_clearprogress_key));
+            buttonClearProgress.setOnPreferenceClickListener(preference -> {
+                new AlertDialog.Builder(getContext())
+                        .setTitle(getString(R.string.pref_data_clearprogress_confirmtitle))
+                        .setMessage(getString(R.string.pref_data_clearprogress_confirmdesc))
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setPositiveButton(android.R.string.yes, (dialog, whichButton) -> AsyncTask.execute(() -> {
+                            SharedPreferences sp = settingsActivity.getSharedPreferences(getString(R.string.savedata_prefs), MODE_PRIVATE);
+                            sp.edit().putFloat("savedDistance", 0f).putFloat("experience", 0f).apply();
+
+                            settingsActivity.runOnUiThread(() -> {
+                                Toast.makeText(getContext(), getString(R.string.pref_data_clearprogress_toast), Toast.LENGTH_LONG).show();
                             });
                         }))
                         .setNegativeButton(android.R.string.no, null).show();

@@ -32,14 +32,17 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
+import java.util.Calendar;
 import java.util.function.Consumer;
 
 public class GameLocationService extends Service {
+    public static final String ACTION_NO_TRACKING = "ACTION_NO_TRACKING";
     public static String TAG = GameLocationService.class.getSimpleName();
 
     private final String CHANNEL_ID = "TRACKER";
     private final String CHANNEL_DESC = "BazBike notifications";
     private final int NOTIFICATION_ID = 1;
+    private final int STOP_TRACKING_REQUEST = 10;
 
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
@@ -83,6 +86,7 @@ public class GameLocationService extends Service {
                 .setColorized(true)
                 .setColor(ContextCompat.getColor(this, R.color.colorPrimary))
                 .setSmallIcon(R.drawable.ic_stat_tracker)
+                //.addAction(R.drawable.ic_stop_tracking, getString(R.string.stop_tracking), stopTrackingIntent)
                 .setContentIntent(pendingIntent);
     }
 
@@ -137,7 +141,9 @@ public class GameLocationService extends Service {
                 final Location location = locationResult.getLastLocation();
 
                 Notification notification = getNotification()
-                        .setContentText(Double.toString(location.getLatitude())).build();
+                        .setShowWhen(true)
+                        .setWhen(Calendar.getInstance().getTimeInMillis())
+                        .setContentText(getString(R.string.notification_tracking)).build();
 
                 NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 mNotificationManager.notify(NOTIFICATION_ID, notification);

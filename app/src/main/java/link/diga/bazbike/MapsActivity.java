@@ -53,9 +53,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
 
     private BroadcastReceiver mLocationUpdateReceiver;
-    private BroadcastReceiver mScoreUpdateReceiver;
-
-    private TextView tvScore;
 
     private Marker mCurrentLocationMarker;
     private Marker mAddLocationMarker;
@@ -70,11 +67,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        setActionBar((Toolbar) findViewById(R.id.toolbar) );
+        setActionBar((Toolbar) findViewById(R.id.toolbar));
 
         mLocationGoalMarkers = new ArrayList<>();
         mLocationGoalCircles = new ArrayList<>();
-        tvScore = findViewById(R.id.score);
 
         bazBikeDatabase = Room
                 .databaseBuilder(getApplicationContext(), BazBikeDatabase.class, "bazbikedb")
@@ -96,30 +92,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 if (mMap != null && mCurrentLocationMarker != null) {
                     mCurrentLocationMarker.setPosition(new LatLng(lat, lng));
-                    if (!mEnableAddLocation) mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mCurrentLocationMarker.getPosition(), 18f));
+                    if (!mEnableAddLocation)
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mCurrentLocationMarker.getPosition(), 18f));
                 }
 
                 Log.i(TAG, "Received location update! " + Double.toString(lat) + ", " + Double.toString(lng));
             }
         };
 
-        updateSavedDistance();
-        mScoreUpdateReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                updateSavedDistance();
-            }
-        };
-
-        Intent intent = new Intent(this, GameLocationService.class);
-        ContextCompat.startForegroundService(this, intent);
-    }
-
-    private void updateSavedDistance() {
-        SharedPreferences sp = getSharedPreferences(getString(R.string.savedata_prefs), MODE_PRIVATE);
-        float distance = sp.getFloat("savedDistance", 0f);
-
-        tvScore.setText(String.valueOf(distance));
+        Intent locationServiceIntent = new Intent(this, GameLocationService.class);
+        ContextCompat.startForegroundService(this, locationServiceIntent);
     }
 
     @Override
@@ -189,19 +171,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(mLocationUpdateReceiver,
                         new IntentFilter("location-update"));
-
-        LocalBroadcastManager.getInstance(this)
-                .registerReceiver(mScoreUpdateReceiver,
-                        new IntentFilter("score-update"));
     }
 
     @Override
     protected void onPause() {
         LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(mLocationUpdateReceiver);
-
-        LocalBroadcastManager.getInstance(this)
-                .unregisterReceiver(mScoreUpdateReceiver);
 
         super.onPause();
     }
