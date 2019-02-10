@@ -2,4 +2,9 @@
     <Preference android:title="@string/pref_data_clear"
                 android:summary="@string/pref_data_clear_summary"
                 android:key="@string/pref_data_clear_key"/>
+
+    <Preference android:title="@string/pref_data_clearprogress"
+        android:summary="@string/pref_data_clear_summaryprogress"
+        android:key="@string/pref_data_clearprogress_key"/>
+
 </PreferenceScreen>

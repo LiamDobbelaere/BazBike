@@ -26,5 +26,12 @@
     <string name="xpPlaceholder">%1$d XP, %2$d to go</string>
     <string name="level">Level</string>
     <string name="levelPlaceholder">Level %1$d</string>
+    <string name="distanceTravelled">%1$s km travelled</string>
+    <string name="pref_data_clearprogress">CLEAR ALL PROGRESS</string>
+    <string name="pref_data_clear_summaryprogress">Clears all earned XP and total distance travelled. Cannot be undone!</string>
+    <string name="pref_data_clearprogress_key">clearprogress</string>
+    <string name="pref_data_clearprogress_confirmtitle">CLEAR ALL PROGRESS</string>
+    <string name="pref_data_clearprogress_confirmdesc">WARNING! This will clear all of your earned XP and your total distance. This cannot be undone!</string>
+    <string name="pref_data_clearprogress_toast">Progress cleared!</string>
 
 </resources>
